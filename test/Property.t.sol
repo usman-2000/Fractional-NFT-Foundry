@@ -13,6 +13,38 @@ contract PropertyTest is Test {
         propertynft = new PropertyNft();
         mytoken = new MyToken(address(propertynft));
     }
+    // Minting an NFT to address(1)
+    function testCreatingNft() public{
+        propertynft.safeMint(address(1), 1);
+        assertEq(propertynft.balanceOf(address(1)), 1);
+    }
+
+    // listing the NFT to the marketplace
+    function testingListingProperty() public{
+        propertynft.safeMint(address(1), 1);
+        assertEq(propertynft.balanceOf(address(1)), 1);
+        vm.prank(address(1));
+        mytoken.listProperty(1, 1000);
+        assertEq(mytoken.totalSupply(), 1000);
+    }
+
+    //Different addresses buy shares in the property
+    function testBuyingShares() public{
+        propertynft.safeMint(address(1), 1);
+        assertEq(propertynft.balanceOf(address(1)), 1);
+        vm.prank(address(1));
+        mytoken.listProperty(1, 1000);
+        assertEq(mytoken.totalSupply(), 1000);
+        vm.deal(address(2), 10 ether);
+        vm.prank(address(2));
+        mytoken.buyShare{value: 2.5 ether}(1, 25);
+        assertEq(mytoken.balanceOf(address(2)), 250);
+        vm.deal(address(5),4 ether);
+        vm.prank(address(5));
+        mytoken.buyShareFromShareholder(1, 1);
+        assertEq(mytoken.balanceOf(address(2)), 0);
+        assertEq(mytoken.balanceOf(address(5)), 250);
+    }
 
     function testCreatingNftAndListing() public {
         propertynft.safeMint(address(1), 1);

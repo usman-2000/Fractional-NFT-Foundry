@@ -17,7 +17,6 @@ contract MyToken is ERC20, Ownable, ERC20Permit, IERC721Receiver {
     mapping(address => uint256) public stockHoldersOfProperty; // address -> tokenId;
     mapping(uint256 => bool) public listed;
     mapping(uint256 => uint256) public TotalAmountOfTokensForNft; // tokenId -> total supply
-    // bool public canRedeem = true;
     mapping(address => uint256) public shareholderShareSellingPrice; // address of shareholder->price
     uint256 public sharers;
     uint256 public voters;
@@ -34,24 +33,19 @@ contract MyToken is ERC20, Ownable, ERC20Permit, IERC721Receiver {
 
     function listProperty(uint256 _tokenId, uint256 _valueToken) external payable {
         require(collection.ownerOf(_tokenId) == msg.sender, "You are not the owner of this Property");
-        // require(msg.value >= oneTokenValue*_valueToken,"Value on the token is not correct");
-        // collection.safeTransferFrom(msg.sender, address(this), _tokenId);
         require(!listed[_tokenId], "Already Listed");
         _mint(msg.sender, _valueToken);
         TotalAmountOfTokensForNft[_tokenId] = _valueToken;
         approve(address(this), _valueToken);
         listed[_tokenId] = true;
-        // oneTokenValue = 0.02 ether;
     }
 
     function buyShare(uint256 _tokenId, uint256 _share) external payable {
-        require(remainingPercentage >= _share, "You cannot by this much share as the remaining share is less");
+        require(remainingPercentage >= _share, "You cannot buy this much share as the remaining share is less");
         uint256 NumberOfTokensToBuy = (TotalAmountOfTokensForNft[_tokenId] * _share) / 100;
         uint256 totalPrice = NumberOfTokensToBuy * oneTokenValue;
         require(msg.value >= totalPrice, "Insufficient Balance");
         ERC20(address(this)).transferFrom(collection.ownerOf(_tokenId), msg.sender, NumberOfTokensToBuy);
-        // (bool sent,) = payable(address(this)).call{value: msg.value}("");
-        // require(sent, "Failed to send Ether");
         remainingPercentage -= _share;
         stakeHoldersAndTheirPercentages[msg.sender] = _share;
         stockHoldersOfProperty[msg.sender] = _tokenId;
@@ -98,11 +92,6 @@ contract MyToken is ERC20, Ownable, ERC20Permit, IERC721Receiver {
         collection.safeTransferFrom(collection.ownerOf(_tokenId), msg.sender, _tokenId);
         // canRedeem = true;
     }
-
-    // function withdraw() public payable onlyOwner {
-    //     (bool sent,) = payable(address(msg.sender)).call{value: address(this).balance}("");
-    //     require(sent, "Failed to send Ether");
-    // }
 
     function withdraw(uint256 _tokenId) public payable {
         require(collection.ownerOf(_tokenId)==msg.sender,"Caller is not the owner");
