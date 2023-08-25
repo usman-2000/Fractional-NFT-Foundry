@@ -1,3 +1,9 @@
+/**
+ * @title MyToken
+ * @dev ERC20 token contract for buying and selling shares of a property represented by an ERC721 token.
+ * Allows listing a property for sale, buying and selling shares, voting for selling the entire property,
+ * buying the entire property, withdrawing funds, and redeeming funds.
+ */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
@@ -11,7 +17,8 @@ import {PropertyNft} from "./PropertyNft.sol";
 contract MyToken is ERC20, Ownable, ERC20Permit, IERC721Receiver {
     IERC721 public collection;
     PropertyNft public collectionContract;
-    uint256 public oneTokenValue = 0.01 ether;
+    uint256 public oneTokenValue = 1 wei;
+    uint256 public minimumShareToBuy = 1e17;
     uint256 public remainingPercentage = 100;
     mapping(address => uint256) public stakeHoldersAndTheirPercentages; // address -> selling percentage
     mapping(address => uint256) public stockHoldersOfProperty; // address -> tokenId;
@@ -36,13 +43,14 @@ contract MyToken is ERC20, Ownable, ERC20Permit, IERC721Receiver {
         require(!listed[_tokenId], "Already Listed");
         _mint(msg.sender, _valueToken);
         TotalAmountOfTokensForNft[_tokenId] = _valueToken;
-        approve(address(this), _valueToken);
+        approve(address(this), _valueToken * (10** decimals()));
         listed[_tokenId] = true;
     }
 
     function buyShare(uint256 _tokenId, uint256 _share) external payable {
         require(remainingPercentage >= _share, "You cannot buy this much share as the remaining share is less");
-        uint256 NumberOfTokensToBuy = (TotalAmountOfTokensForNft[_tokenId] * _share) / 100;
+        // require((_share*1e18)/1e18 >= (minimumShareToBuy*1e18)/1e18, "Minimum shares to buy is 0.1%");
+        uint256 NumberOfTokensToBuy = (TotalAmountOfTokensForNft[_tokenId] * _share) / 1000; // _share/10 === 10 neechay ja kr 100 sy multiply hoga or 1000 hogya.. So share 1 aya tha parameter mn to wo wapis sy 0.1 hi k brabar calculate hoga
         uint256 totalPrice = NumberOfTokensToBuy * oneTokenValue;
         require(msg.value >= totalPrice, "Insufficient Balance");
         ERC20(address(this)).transferFrom(collection.ownerOf(_tokenId), msg.sender, NumberOfTokensToBuy);
@@ -87,10 +95,8 @@ contract MyToken is ERC20, Ownable, ERC20Permit, IERC721Receiver {
         uint256 totalPrice = totalSupply() * oneTokenValue;
         require(msg.value >= totalPrice);
         collectionContract.changeListing(false, _tokenId);
-        // (bool sent,) = address(this).call{value: msg.value}("");
-        // require(sent, "Failed to send Ether");
+
         collection.safeTransferFrom(collection.ownerOf(_tokenId), msg.sender, _tokenId);
-        // canRedeem = true;
     }
 
     function withdraw(uint256 _tokenId) public payable {
@@ -101,13 +107,10 @@ contract MyToken is ERC20, Ownable, ERC20Permit, IERC721Receiver {
     }
 
     function redeem(uint256 _amount, uint256 _tokenId) external {
-        // require(canRedeem,"Redemption is not availale");
         require(stockHoldersOfProperty[msg.sender] == _tokenId, "You are not the shareholder in this property");
         uint256 totalEther = address(this).balance;
         uint256 toRedeem = _amount * totalEther / totalSupply();
         _burn(msg.sender, _amount);
-        // (bool sent, bytes memory data) = _to.call{value: msg.value}("");
-        // payable(msg.sender).transfer(toRedeem);
         (bool sent,) = payable(msg.sender).call{value: toRedeem}("");
         require(sent, "Failed to send Ether");
     }
