@@ -17,9 +17,10 @@ import {PropertyNft} from "./PropertyNft.sol";
 contract MyToken is ERC20, Ownable, ERC20Permit, IERC721Receiver {
     IERC721 public collection;
     PropertyNft public collectionContract;
-    uint256 public oneTokenValue = 1 wei;
-    uint256 public minimumShareToBuy = 1e17;
-    uint256 public remainingPercentage = 100;
+    uint256 public oneTokenValue = 0.000000000000000001 ether;
+    // uint256 public remainingPercentage = 100 ;
+    uint256 public remainingPercentage = 100e18 ;
+
     mapping(address => uint256) public stakeHoldersAndTheirPercentages; // address -> selling percentage
     mapping(address => uint256) public stockHoldersOfProperty; // address -> tokenId;
     mapping(uint256 => bool) public listed;
@@ -41,21 +42,25 @@ contract MyToken is ERC20, Ownable, ERC20Permit, IERC721Receiver {
     function listProperty(uint256 _tokenId, uint256 _valueToken) external payable {
         require(collection.ownerOf(_tokenId) == msg.sender, "You are not the owner of this Property");
         require(!listed[_tokenId], "Already Listed");
-        _mint(msg.sender, _valueToken);
-        TotalAmountOfTokensForNft[_tokenId] = _valueToken;
+        _mint(msg.sender, _valueToken * (10** decimals()));
+        TotalAmountOfTokensForNft[_tokenId] = _valueToken* (10** decimals());
         approve(address(this), _valueToken * (10** decimals()));
         listed[_tokenId] = true;
     }
 
     function buyShare(uint256 _tokenId, uint256 _share) external payable {
-        require(remainingPercentage >= _share, "You cannot buy this much share as the remaining share is less");
+        require(remainingPercentage/1e18 >= _share/10, "You cannot buy this much share as the remaining share is less");
+        // require(remainingPercentage>= _share/10, "You cannot buy this much share as the remaining share is less");
+
         // require((_share*1e18)/1e18 >= (minimumShareToBuy*1e18)/1e18, "Minimum shares to buy is 0.1%");
-        uint256 NumberOfTokensToBuy = (TotalAmountOfTokensForNft[_tokenId] * _share) / 1000; // _share/10 === 10 neechay ja kr 100 sy multiply hoga or 1000 hogya.. So share 1 aya tha parameter mn to wo wapis sy 0.1 hi k brabar calculate hoga
+        uint256 NumberOfTokensToBuy = (TotalAmountOfTokensForNft[_tokenId] * _share/10) / 100; 
         uint256 totalPrice = NumberOfTokensToBuy * oneTokenValue;
         require(msg.value >= totalPrice, "Insufficient Balance");
         ERC20(address(this)).transferFrom(collection.ownerOf(_tokenId), msg.sender, NumberOfTokensToBuy);
-        remainingPercentage -= _share;
-        stakeHoldersAndTheirPercentages[msg.sender] = _share;
+        remainingPercentage -= 1e18 * _share/10;
+        // remainingPercentage -= _share/10;
+
+        stakeHoldersAndTheirPercentages[msg.sender] = _share/10;
         stockHoldersOfProperty[msg.sender] = _tokenId;
         sharers += 1;
         PropertySharers[sharers][_tokenId] = msg.sender;
@@ -93,7 +98,7 @@ contract MyToken is ERC20, Ownable, ERC20Permit, IERC721Receiver {
         require((voters / sharers) * 100 >= 50, "Majority shareholders don't want to sell");
         require(listed[_tokenId], "Not listed");
         uint256 totalPrice = totalSupply() * oneTokenValue;
-        require(msg.value >= totalPrice);
+        require(msg.value >= totalPrice,"Insufficient Balance");
         collectionContract.changeListing(false, _tokenId);
 
         collection.safeTransferFrom(collection.ownerOf(_tokenId), msg.sender, _tokenId);
