@@ -14,22 +14,23 @@ contract PropertyTest is Test {
         mytoken = new MyToken(address(propertynft));
     }
     // // Minting an NFT to address(1)
-    function testCreatingNft() public{
+
+    function testCreatingNft() public {
         propertynft.safeMint(address(1), 1);
         assertEq(propertynft.balanceOf(address(1)), 1);
     }
 
     // // listing the NFT to the marketplace
-    function testingListingProperty() public{
+    function testingListingProperty() public {
         propertynft.safeMint(address(1), 1);
         assertEq(propertynft.balanceOf(address(1)), 1);
         vm.prank(address(1));
         mytoken.listProperty(1, 1000);
-        assertEq(mytoken.totalSupply(), 1000* (10** mytoken.decimals()));
+        assertEq(mytoken.totalSupply(), 1000 * (10 ** mytoken.decimals()));
     }
 
     // //Different addresses buy shares in the property
-    function testBuyingShares() public{
+    function testBuyingShares() public {
         propertynft.safeMint(address(1), 1);
         assertEq(propertynft.balanceOf(address(1)), 1);
         vm.prank(address(1));
@@ -37,27 +38,26 @@ contract PropertyTest is Test {
         vm.deal(address(2), 10 ether);
         vm.prank(address(2));
         mytoken.buyShare{value: 2 ether}(1, 1); // 0.1%
-        assertEq(mytoken.remainingPercentage(),99900000000000000000); // isko agr 1e18 sy divide krengy to 99.9 answer aa jayega ... or wo divisin frontend py krayengy
+        assertEq(mytoken.remainingPercentage(), 99900000000000000000); // isko agr 1e18 sy divide krengy to 99.9 answer aa jayega ... or wo divisin frontend py krayengy
         assertEq(mytoken.balanceOf(address(2)), 1000000000000000000);
-        assertEq(mytoken.balanceOf(address(1)),999000000000000000000);
+        assertEq(mytoken.balanceOf(address(1)), 999000000000000000000);
 
         vm.deal(address(3), 10 ether);
         vm.prank(address(3));
         mytoken.buyShare{value: 2 ether}(1, 1); // 0.1%
-        assertEq(mytoken.remainingPercentage(),99800000000000000000); // 998e18 / 1e18 = 99.8%
+        assertEq(mytoken.remainingPercentage(), 99800000000000000000); // 998e18 / 1e18 = 99.8%
         assertEq(mytoken.balanceOf(address(3)), 1000000000000000000);
-        assertEq(mytoken.balanceOf(address(1)),998000000000000000000);
-
+        assertEq(mytoken.balanceOf(address(1)), 998000000000000000000);
 
         vm.deal(address(4), 10 ether);
         vm.prank(address(4));
         mytoken.buyShare{value: 10 ether}(1, 10); // 1%
-        assertEq(mytoken.remainingPercentage(),98800000000000000000);
+        assertEq(mytoken.remainingPercentage(), 98800000000000000000);
         assertEq(mytoken.balanceOf(address(4)), 10000000000000000000);
     }
 
     // // Voting for sale so that owner can sell the Property to any other address
-    function testVotingForSale() public{
+    function testVotingForSale() public {
         propertynft.safeMint(address(1), 1);
         assertEq(propertynft.balanceOf(address(1)), 1);
         vm.prank(address(1));
@@ -65,9 +65,9 @@ contract PropertyTest is Test {
         vm.deal(address(2), 10 ether);
         vm.prank(address(2));
         mytoken.buyShare{value: 2 ether}(1, 1); // 0.1%
-        assertEq(mytoken.remainingPercentage(),99900000000000000000);
+        assertEq(mytoken.remainingPercentage(), 99900000000000000000);
         assertEq(mytoken.balanceOf(address(2)), 1000000000000000000);
-        assertEq(mytoken.balanceOf(address(1)),999000000000000000000);
+        assertEq(mytoken.balanceOf(address(1)), 999000000000000000000);
 
         // voting to sell
         vm.prank(address(2));
@@ -76,7 +76,7 @@ contract PropertyTest is Test {
     }
 
     // // Buying whole property even if any address buy some shares from this
-    function testBuyingWholeProperty() public{
+    function testBuyingWholeProperty() public {
         propertynft.safeMint(address(1), 1);
         assertEq(propertynft.balanceOf(address(1)), 1);
         vm.prank(address(1));
@@ -84,9 +84,9 @@ contract PropertyTest is Test {
         vm.deal(address(2), 10 ether);
         vm.prank(address(2));
         mytoken.buyShare{value: 2 ether}(1, 1); // 0.1%
-        assertEq(mytoken.remainingPercentage(),99900000000000000000);
+        assertEq(mytoken.remainingPercentage(), 99900000000000000000);
         assertEq(mytoken.balanceOf(address(2)), 1000000000000000000);
-        assertEq(mytoken.balanceOf(address(1)),999000000000000000000);
+        assertEq(mytoken.balanceOf(address(1)), 999000000000000000000);
         vm.prank(address(1));
         propertynft.setApprovalForAll(address(mytoken), true);
         vm.prank(address(1));
@@ -115,9 +115,9 @@ contract PropertyTest is Test {
         vm.deal(address(2), 10 ether);
         vm.prank(address(2));
         mytoken.buyShare{value: 2 ether}(1, 1); // 0.1%
-        assertEq(mytoken.remainingPercentage(),99900000000000000000);
+        assertEq(mytoken.remainingPercentage(), 99900000000000000000);
         assertEq(mytoken.balanceOf(address(2)), 1000000000000000000);
-        assertEq(mytoken.balanceOf(address(1)),999000000000000000000);
+        assertEq(mytoken.balanceOf(address(1)), 999000000000000000000);
         vm.prank(address(1));
         propertynft.setApprovalForAll(address(mytoken), true);
         vm.prank(address(1));
@@ -150,16 +150,16 @@ contract PropertyTest is Test {
         vm.deal(address(2), 10 ether);
         vm.prank(address(2));
         mytoken.buyShare{value: 2 ether}(1, 1); // 0.1%
-        assertEq(mytoken.remainingPercentage(),99900000000000000000);
+        assertEq(mytoken.remainingPercentage(), 99900000000000000000);
         assertEq(mytoken.balanceOf(address(2)), 1000000000000000000);
-        assertEq(mytoken.balanceOf(address(1)),999000000000000000000);
+        assertEq(mytoken.balanceOf(address(1)), 999000000000000000000);
 
         vm.deal(address(3), 10 ether);
         vm.prank(address(3));
         mytoken.buyShare{value: 2 ether}(1, 1); // 0.1%
-        assertEq(mytoken.remainingPercentage(),99800000000000000000); // 998e18 / 1e18 = 99.8%
+        assertEq(mytoken.remainingPercentage(), 99800000000000000000); // 998e18 / 1e18 = 99.8%
         assertEq(mytoken.balanceOf(address(3)), 1000000000000000000);
-        assertEq(mytoken.balanceOf(address(1)),998000000000000000000);
+        assertEq(mytoken.balanceOf(address(1)), 998000000000000000000);
 
         vm.prank(address(1));
         propertynft.setApprovalForAll(address(mytoken), true);
@@ -202,7 +202,7 @@ contract PropertyTest is Test {
 
     // }
 
-    // // This test will fail because property has only 100% share 
+    // // This test will fail because property has only 100% share
     // function testFail_BuyingSharesMoreThan_100_percent() public{
     //     propertynft.safeMint(address(1), 1);
     //     assertEq(propertynft.balanceOf(address(1)), 1);
@@ -362,5 +362,4 @@ contract PropertyTest is Test {
     //     assertEq(mytoken.balanceOf(address(2)), 1);
     //     assertEq(mytoken.balanceOf(address(1)),999);
     // }
-
 }
